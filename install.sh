@@ -5,6 +5,17 @@ if ! grep -q "arch" /etc/os-release; then
     exit 1
 fi
 
+DATETS=$(date '+%d-%m-%Y %H:%M:%S')
+
+if [ -d $HOME/dotfiles ]; then
+    mkdir "$HOME/dotfiles-versions/archive/dotfiles $DATETS/"
+    mv "$HOME/dotfiles/" "$HOME/dotfiles-versions/archive/dotfiles $DATETS/"
+    echo ":: Backup of $HOME/dotfiles created in $HOME/dotfiles-versions/archive/dotfiles $DATETS/"
+fi
+
+# mkdir "$HOME/dotfiles"
+cp -r "$HOME/github/hyprland-material-you/" "$HOME/dotfiles/"
+
 if [ ! -d "$HOME/dotfiles" ]; then
     echo ":: The directory $HOME/dotfiles does not exist."
     exit 1
@@ -102,21 +113,35 @@ setup_sensors() {
     sudo sensors-detect --auto >/dev/null
 }
 
+# check_config_folders() {
+#     local CHECK_CONFIG_FOLDERS="ags alacritty hypr swappy wal"
+#     local EXIT="NO"
+
+#     for dir in $CHECK_CONFIG_FOLDERS; do
+#         if [ -d "$HOME/.config/$dir" ]; then
+#             echo ":: Error: directory $dir already exists in .config"
+#             EXIT="YES"
+#         fi
+#     done
+
+#     if [[ $EXIT == "YES" ]]; then
+#         echo ":: Please remove it or make a backup of it"
+#         exit 1
+#     fi
+# }
+
 check_config_folders() {
     local CHECK_CONFIG_FOLDERS="ags alacritty hypr swappy wal"
-    local EXIT="NO"
+    local BACKUP_DIR="$HOME/dotfiles-versions/backup $DATETS/config"
 
     for dir in $CHECK_CONFIG_FOLDERS; do
         if [ -d "$HOME/.config/$dir" ]; then
-            echo ":: Error: directory $dir already exists in .config"
-            EXIT="YES"
+            echo ":: Directory $dir already exists in .config. Moving to backup..."
+            mkdir -p "$BACKUP_DIR"
+            mv "$HOME/.config/$dir" "$BACKUP_DIR"
+            echo ":: $dir moved to $BACKUP_DIR"
         fi
     done
-
-    if [[ $EXIT == "YES" ]]; then
-        echo ":: Please remove it or make a backup of it"
-        exit 1
-    fi
 }
 
 install_tela_nord_icons() {
@@ -228,9 +253,9 @@ main() {
     fi
 
     ask_continue "Proceed with installing packages?" false && install_packages
-    preference_select "file manager" "filemanager" "nautilus" "dolphin" "thunar"
-    preference_select "internet browser" "browser" "brave" "firefox" "google-chrome" "chromium"
-    preference_select "terminal emulator" "terminal" "alacritty" "kitty" "konsole"
+    preference_select "file manager" "filemanager" "dolphin" "nautilus" "thunar"
+    preference_select "internet browser" "browser" "librewolf" "brave" "firefox" "google-chrome" "chromium"
+    preference_select "terminal emulator" "terminal" "kitty "alacritty"" "konsole"
     ask_continue "Proceed with installing MicroTex?*" && install_microtex
     ask_continue "Proceed with setting up sensors?" false && setup_sensors
     ask_continue "Proceed with checking config folders?*" && check_config_folders
